@@ -21,7 +21,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const res = await axios.post('http://localhost:5000/api/auth/login', { email, password });
+      const res = await axios.post('http://localhost:5000/api/auth/login', { email: email.trim(), password });
       const data = res.data;
       
       // Assume the backend returns token and some user info
@@ -35,17 +35,17 @@ export const AuthProvider = ({ children }) => {
       setUser({ token: data.token, role: data.user.role, id: data.user.id, name: data.user.name });
       return { success: true };
     } catch (error) {
-      return { success: false, message: error.response?.data?.message || 'Login failed' };
+      return { success: false, message: error.response?.data?.msg || error.response?.data?.message || 'Login failed' };
     }
   };
 
   const register = async (name, email, password, role) => {
     try {
-      const res = await axios.post('http://localhost:5000/api/auth/register', { name, email, password, role });
+      const res = await axios.post('http://localhost:5000/api/auth/register', { name, email: email.trim(), password, role });
       // Usually register might not auto login, or it does. Let's just return success
       return { success: true };
     } catch (error) {
-      return { success: false, message: error.response?.data?.message || 'Registration failed' };
+      return { success: false, message: error.response?.data?.msg || error.response?.data?.message || 'Registration failed' };
     }
   }
 
