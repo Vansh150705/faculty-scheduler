@@ -104,7 +104,7 @@ const Login = () => {
             Seamlessly coordinate your academic schedule.
           </h2>
           <p className="text-primary-light text-xl opacity-90 leading-relaxed">
-            The premium scheduling platform designed exclusively for university faculty and students. Manage office hours, book appointments, and stay organized.
+            The premium scheduling platform designed exclusively for university faculty and students. Manage office hours, book appointments, and stay organized with this scheduling platform.
           </p>
         </div>
       </div>
