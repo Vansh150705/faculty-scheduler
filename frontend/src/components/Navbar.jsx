@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { LogOut, Calendar, User as UserIcon } from 'lucide-react';
@@ -6,6 +6,15 @@ import { LogOut, Calendar, User as UserIcon } from 'lucide-react';
 const Navbar = () => {
   const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -13,28 +22,39 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="glass-panel sticky top-0 z-50 mb-8 mx-4 mt-4 px-6 py-4 flex justify-between items-center animate-fade-in">
-      <div className="flex items-center gap-2">
-        <div className="bg-primary text-white p-2 rounded-lg">
-          <Calendar size={24} />
-        </div>
-        <span className="font-bold text-xl text-primary">FacultyScheduler</span>
-      </div>
-      
-      <div className="flex items-center gap-6">
-        <div className="flex items-center gap-2 text-text-muted">
-          <UserIcon size={18} />
-          <span className="font-medium text-text-main">{user.name}</span>
-          <span className="text-xs bg-primary-light text-primary px-2 py-1 rounded-full uppercase tracking-wide font-semibold">
-            {user.role}
+    <div className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'py-4' : 'py-6'}`}>
+      <nav className={`container mx-auto max-w-6xl flex justify-between items-center transition-all duration-300 ${scrolled ? 'glass-nav rounded-full px-6 py-3 shadow-lg' : 'px-6 py-2 bg-transparent'}`}>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary text-white shadow-md">
+            <Calendar size={20} />
+          </div>
+          <span className="font-extrabold text-xl tracking-tight" style={{ fontFamily: "'Outfit', sans-serif" }}>
+            FacultyScheduler
           </span>
         </div>
-        <button onClick={handleLogout} className="btn btn-secondary text-danger hover:bg-danger hover:text-white hover:border-danger transition">
-          <LogOut size={16} />
-          Logout
-        </button>
-      </div>
-    </nav>
+        
+        <div className="flex items-center gap-6">
+          <div className="hidden md:flex items-center gap-3 bg-surface border border-border px-4 py-2 rounded-full shadow-sm">
+            <div className="w-6 h-6 rounded-full bg-primary-light text-primary flex items-center justify-center">
+              <UserIcon size={14} />
+            </div>
+            <span className="font-medium text-sm text-text-main">{user.name}</span>
+            <div className="w-px h-4 bg-border mx-1"></div>
+            <span className="text-xs text-primary uppercase tracking-wider font-bold">
+              {user.role}
+            </span>
+          </div>
+          
+          <button 
+            onClick={handleLogout} 
+            className="btn btn-secondary text-text-muted hover:text-danger hover:border-danger hover:bg-red-50 !p-2 !rounded-full group"
+            title="Logout"
+          >
+            <LogOut size={18} className="group-hover:translate-x-1 transition-transform" />
+          </button>
+        </div>
+      </nav>
+    </div>
   );
 };
 
