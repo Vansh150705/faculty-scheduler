@@ -21,6 +21,9 @@ const AppRoutes = () => {
   const { user } = useContext(AuthContext);
   return (
     <div className="page-wrapper">
+      <div className="hero-gradient">
+        <div className="hero-gradient-blob-3"></div>
+      </div>
       {user && <Navbar />}
       <main className="main-content">
         <Routes>
