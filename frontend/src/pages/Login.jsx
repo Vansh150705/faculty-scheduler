@@ -35,7 +35,7 @@ const Login = () => {
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary-light text-primary mb-6 shadow-sm">
               <CalendarDays size={32} />
             </div>
-            <h1 className="text-4xl font-extrabold text-text-main tracking-tight">Welcome Back</h1>
+            <h1 className="text-4xl font-extrabold tracking-tight m-0 bg-clip-text text-transparent bg-gradient-to-r from-primary via-indigo-500 to-secondary" style={{ WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>Welcome Back</h1>
             <p className="text-text-muted mt-3 text-lg">Enter your details to access your dashboard.</p>
           </div>
 
@@ -99,13 +99,31 @@ const Login = () => {
       <div className="auth-visual-side">
         <div className="shape-1"></div>
         <div className="shape-2"></div>
-        <div className="auth-visual-content animate-slide-up delay-200">
+        <div className="auth-visual-content animate-slide-up delay-200 relative">
           <h2 className="text-white text-5xl font-extrabold mb-6 leading-tight">
             Seamlessly coordinate your academic schedule.
           </h2>
-          <p className="text-primary-light text-xl opacity-90 leading-relaxed">
+          <p className="text-primary-light text-xl opacity-90 leading-relaxed mb-12">
             The premium scheduling platform designed exclusively for university faculty and students. Manage office hours, book appointments, and stay organized with this scheduling platform.
           </p>
+
+          {/* Floating Element 1 - Faculty */}
+          <div className="absolute -right-12 top-0 glass-panel p-4 flex items-center gap-4 animate-bounce hidden lg:flex" style={{ animationDuration: '4s', background: 'rgba(255,255,255,0.1)', borderColor: 'rgba(255,255,255,0.2)' }}>
+            <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-2xl shadow-md">👨‍🏫</div>
+            <div>
+              <p className="font-bold text-white text-sm">Prof. Anderson</p>
+              <p className="text-primary-light text-xs">Available at 2:00 PM</p>
+            </div>
+          </div>
+
+          {/* Floating Element 2 - Student */}
+          <div className="absolute -left-8 bottom-0 glass-panel p-4 flex items-center gap-4 animate-bounce hidden lg:flex" style={{ animationDuration: '5s', animationDelay: '1s', background: 'rgba(255,255,255,0.1)', borderColor: 'rgba(255,255,255,0.2)' }}>
+            <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-2xl shadow-md">👩‍🎓</div>
+            <div>
+              <p className="font-bold text-white text-sm">Sarah Jenkins</p>
+              <p className="text-primary-light text-xs">Booked Session</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>
