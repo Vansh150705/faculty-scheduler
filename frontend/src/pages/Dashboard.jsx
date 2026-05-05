@@ -12,8 +12,8 @@ const Dashboard = () => {
       <div className="mb-10 p-8 glass-panel rounded-2xl flex items-center justify-between">
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <h1 className="text-4xl font-bold text-text-main m-0">
-              Welcome back, {user.name.split(' ')[0]} <span className="inline-block animate-bounce" style={{ animationDuration: '2s' }}>👋</span>
+            <h1 className="text-4xl font-extrabold m-0 bg-clip-text text-transparent bg-gradient-to-r from-primary via-indigo-500 to-secondary" style={{ WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
+              Welcome back, {user.name.split(' ')[0]} <span className="inline-block animate-bounce" style={{ animationDuration: '2s', WebkitTextFillColor: 'initial' }}>👋</span>
             </h1>
           </div>
           <p className="text-text-muted text-lg">
