@@ -89,7 +89,7 @@ const FacultyScheduler = () => {
             <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-primary-light text-primary shadow-sm">
               <Clock size={24} />
             </div>
-            <h2 className="text-2xl font-bold m-0">Set Availability</h2>
+            <h2 className="text-2xl font-extrabold m-0 bg-clip-text text-transparent bg-gradient-to-r from-primary via-indigo-500 to-secondary" style={{ WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>Set Availability</h2>
           </div>
           
           <form onSubmit={handleAddAvailability} className="flex flex-col gap-5">
@@ -176,7 +176,7 @@ const FacultyScheduler = () => {
             <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-secondary text-white shadow-sm">
               <CalendarIcon size={24} />
             </div>
-            <h2 className="text-2xl font-bold m-0">Appointment Requests</h2>
+            <h2 className="text-2xl font-extrabold m-0 bg-clip-text text-transparent bg-gradient-to-r from-secondary via-teal-500 to-emerald-400" style={{ WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>Appointment Requests</h2>
           </div>
 
           {appointments.length === 0 ? (
