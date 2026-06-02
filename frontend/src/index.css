@@ -366,8 +366,8 @@ p {
   font-family: 'Outfit', sans-serif;
 }
 
-.badge-success { background: #ECFDF5; color: #059669; }
-.badge-warning { background: #FFFBEB; color: #D97706; }
+.badge-success { background: #ECFDF5; color: #059668; }
+.badge-warning { background: #FFFBEB; color: #D97707; }
 .badge-primary { background: var(--primary-light); color: var(--primary); }
 
 /* Animations */
