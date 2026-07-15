@@ -1,31 +1,33 @@
 const express = require('express');
-const mongoose = require('mongoose');
 const cors = require('cors');
-require('dotenv').config();
+
+const config = require('./config/env');
+const connectDB = require('./config/db');
+const requestLogger = require('./middleware/requestLogger');
+const { notFound, errorHandler } = require('./middleware/errorHandler');
 
 const app = express();
 
-app.use(cors());
+app.use(cors({ origin: config.clientUrl === '*' ? true : [config.clientUrl, 'http://localhost:5173', 'http://localhost:3000'] }));
 app.use(express.json());
+app.use(requestLogger);
 
 // Routes
-const authRoutes = require('./routes/authRoutes');
-const availabilityRoutes = require('./routes/availabilityRoutes');
-const appointmentRoutes = require('./routes/appointmentRoutes');
+app.use('/api/health', require('./routes/healthRoutes'));
+app.use('/api/auth', require('./routes/authRoutes'));
+app.use('/api/availability', require('./routes/availabilityRoutes'));
+app.use('/api/appointments', require('./routes/appointmentRoutes'));
 
-app.use('/api/auth', authRoutes);
-app.use('/api/availability', availabilityRoutes);
-app.use('/api/appointments', appointmentRoutes);
+// 404 + centralised error handling (must be registered last).
+app.use(notFound);
+app.use(errorHandler);
 
-// Connect to MongoDB
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
-.then(() => {
-  console.log('MongoDB connected');
-  app.listen(process.env.PORT, () => {
-    console.log(`Server running on port ${process.env.PORT}`);
+// Boot: connect to the database first, then start listening.
+connectDB().then(() => {
+  app.listen(config.port, () => {
+    // eslint-disable-next-line no-console
+    console.log(`[server] Running in ${config.env} mode on port ${config.port}`);
   });
-})
-.catch(err => console.log(err));
+});
+
+module.exports = app;
