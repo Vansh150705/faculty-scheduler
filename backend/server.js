@@ -11,7 +11,7 @@ const app = express();
 
 app.use(securityHeaders);
 app.use(cors({ origin: config.clientUrl === '*' ? true : [config.clientUrl, 'http://localhost:5173', 'http://localhost:3000'] }));
-app.use(express.json());
+app.use(express.json({ limit: '1mb' }));
 app.use(requestLogger);
 
 // Routes
