@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const mongoose = require('mongoose');
 
 const config = require('./config/env');
 const connectDB = require('./config/db');
@@ -28,11 +29,21 @@ app.use(notFound);
 app.use(errorHandler);
 
 // Boot: connect to the database first, then start listening.
+let server;
 connectDB().then(() => {
-  app.listen(config.port, () => {
+  server = app.listen(config.port, () => {
     // eslint-disable-next-line no-console
     console.log(`[server] Running in ${config.env} mode on port ${config.port}`);
   });
 });
+
+// Close the HTTP server and DB connection cleanly on termination signals.
+const shutdown = (signal) => {
+  // eslint-disable-next-line no-console
+  console.log(`[server] ${signal} received, shutting down gracefully`);
+  if (server) server.close();
+  mongoose.connection.close(false).finally(() => process.exit(0));
+};
+['SIGTERM', 'SIGINT'].forEach((sig) => process.on(sig, () => shutdown(sig)));
 
 module.exports = app;
