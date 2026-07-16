@@ -1,18 +1,23 @@
 const jwt = require('jsonwebtoken');
+const config = require('../config/env');
+const ApiError = require('../utils/ApiError');
 
+// Verifies the Bearer token and attaches the decoded payload to req.user.
 const authMiddleware = (req, res, next) => {
-  const token = req.header('Authorization');
+  const header = req.header('Authorization');
 
-  if (!token) {
-    return res.status(401).json({ message: 'No token, authorization denied' });
+  if (!header || !header.startsWith('Bearer ')) {
+    return next(ApiError.unauthorized('No token provided, authorization denied'));
   }
 
+  const token = header.slice(7).trim();
+
   try {
-    const decoded = jwt.verify(token.replace('Bearer ', ''), process.env.JWT_SECRET || 'secret');
-    req.user = decoded;
+    req.user = jwt.verify(token, config.jwtSecret);
     next();
   } catch (err) {
-    res.status(401).json({ message: 'Token is not valid' });
+    // Let the central error handler map JWT errors to the right status/message.
+    next(err);
   }
 };
 
