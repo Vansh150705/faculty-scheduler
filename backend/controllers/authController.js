@@ -77,3 +77,46 @@ exports.getFaculty = asyncHandler(async (req, res) => {
     .sort({ name: 1 });
   res.json(faculty);
 });
+
+// PUT /api/auth/profile — update the current user's editable profile fields.
+exports.updateProfile = asyncHandler(async (req, res) => {
+  const allowed = ['name', 'department', 'title', 'phone', 'officeLocation', 'bio'];
+  const updates = {};
+  allowed.forEach((field) => {
+    if (req.body[field] !== undefined) updates[field] = req.body[field];
+  });
+
+  if (updates.name !== undefined && !updates.name.trim()) {
+    throw ApiError.badRequest('Name cannot be empty');
+  }
+
+  const user = await User.findByIdAndUpdate(req.user.id, updates, {
+    new: true,
+    runValidators: true,
+  }).select('-password');
+  if (!user) throw ApiError.notFound('User not found');
+
+  res.json({ message: 'Profile updated', user });
+});
+
+// PUT /api/auth/password — change the current user's password.
+exports.changePassword = asyncHandler(async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+  if (!currentPassword || !newPassword) {
+    throw ApiError.badRequest('Current and new password are required');
+  }
+  if (newPassword.length < 6) {
+    throw ApiError.badRequest('New password must be at least 6 characters');
+  }
+
+  const user = await User.findById(req.user.id);
+  if (!user) throw ApiError.notFound('User not found');
+
+  const isMatch = await bcrypt.compare(currentPassword, user.password);
+  if (!isMatch) throw ApiError.badRequest('Current password is incorrect');
+
+  user.password = await bcrypt.hash(newPassword, 10);
+  await user.save();
+
+  res.json({ message: 'Password updated successfully' });
+});
