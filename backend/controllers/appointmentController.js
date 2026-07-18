@@ -1,113 +1,123 @@
 const Appointment = require('../models/Appointment');
 const User = require('../models/User');
-const nodemailer = require('nodemailer');
+const asyncHandler = require('../utils/asyncHandler');
+const ApiError = require('../utils/ApiError');
+const { sendEmail } = require('../utils/mailer');
+const { validateTimeRange, toMinutes } = require('../utils/validators');
 
-// Set up nodemailer transporter
-// Note: In production, these should be environment variables.
-const transporter = nodemailer.createTransport({
-  service: 'gmail', // or any other email provider
-  auth: {
-    user: process.env.EMAIL_USER || 'test@example.com',
-    pass: process.env.EMAIL_PASS || 'password'
+// Start/end of the calendar day for a given date, used to match all
+// appointments that fall on the same day regardless of time component.
+const dayBounds = (date) => {
+  const start = new Date(date);
+  start.setHours(0, 0, 0, 0);
+  const end = new Date(start);
+  end.setDate(end.getDate() + 1);
+  return { start, end };
+};
+
+// Two [start,end) ranges overlap when each starts before the other ends.
+const overlaps = (aStart, aEnd, bStart, bEnd) =>
+  toMinutes(aStart) < toMinutes(bEnd) && toMinutes(bStart) < toMinutes(aEnd);
+
+// POST /api/appointments — students book an appointment.
+exports.createAppointment = asyncHandler(async (req, res) => {
+  const { facultyId, date, startTime, endTime, reason, location } = req.body;
+
+  if (!facultyId || !date) throw ApiError.badRequest('facultyId and date are required');
+  validateTimeRange(startTime, endTime);
+
+  const bookingDate = new Date(date);
+  if (Number.isNaN(bookingDate.getTime())) throw ApiError.badRequest('Invalid date');
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  if (bookingDate < today) throw ApiError.badRequest('Cannot book an appointment in the past');
+
+  const faculty = await User.findById(facultyId);
+  if (!faculty || faculty.role !== 'faculty') throw ApiError.notFound('Faculty member not found');
+
+  // Prevent double-booking: reject if this slot overlaps an existing
+  // pending/confirmed appointment for the same faculty on the same day.
+  const { start, end } = dayBounds(bookingDate);
+  const sameDay = await Appointment.find({
+    facultyId,
+    date: { $gte: start, $lt: end },
+    status: { $in: ['pending', 'confirmed'] },
+  });
+  const clash = sameDay.some((a) => overlaps(startTime, endTime, a.startTime, a.endTime));
+  if (clash) {
+    throw ApiError.conflict('That time slot is already booked. Please choose another.');
   }
+
+  const appointment = await Appointment.create({
+    studentId: req.user.id,
+    facultyId,
+    date: bookingDate,
+    startTime,
+    endTime,
+    reason: reason || '',
+    location: location || '',
+    status: 'pending',
+  });
+
+  sendEmail(
+    faculty.email,
+    'New Appointment Request',
+    `You have a new appointment request for ${bookingDate.toDateString()} from ${startTime} to ${endTime}.` +
+      (reason ? `\nReason: ${reason}` : '') +
+      '\nPlease log in to confirm or cancel.'
+  );
+
+  res.status(201).json(appointment);
 });
 
-// Helper function to send email
-const sendEmail = async (to, subject, text) => {
-  try {
-    if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
-      await transporter.sendMail({
-        from: process.env.EMAIL_USER,
-        to,
-        subject,
-        text
-      });
-      console.log(`Email sent to ${to}`);
-    } else {
-      console.log(`[Email Mock] To: ${to} | Subject: ${subject} | Body: ${text}`);
-    }
-  } catch (error) {
-    console.error('Error sending email:', error);
+// GET /api/appointments — role-scoped list with optional filters.
+// Query: status, upcoming=true
+exports.getAppointments = asyncHandler(async (req, res) => {
+  const query = {};
+  if (req.user.role === 'student') query.studentId = req.user.id;
+  else if (req.user.role === 'faculty') query.facultyId = req.user.id;
+  // admins see everything
+
+  if (req.query.status) query.status = req.query.status;
+  if (req.query.upcoming === 'true') {
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    query.date = { $gte: now };
   }
-};
 
-exports.createAppointment = async (req, res) => {
-  try {
-    if (req.user.role !== 'student') {
-      return res.status(403).json({ message: 'Access denied. Only students can book appointments.' });
-    }
+  const appointments = await Appointment.find(query)
+    .populate('studentId', 'name email')
+    .populate('facultyId', 'name email department')
+    .sort({ date: 1, startTime: 1 });
 
-    const { facultyId, date, startTime, endTime } = req.body;
+  res.json(appointments);
+});
 
-    const newAppointment = new Appointment({
-      studentId: req.user.id,
-      facultyId,
-      date,
-      startTime,
-      endTime,
-      status: 'pending'
-    });
-
-    await newAppointment.save();
-
-    // Fetch faculty details to send email
-    const faculty = await User.findById(facultyId);
-    if (faculty) {
-      sendEmail(
-        faculty.email, 
-        'New Appointment Request', 
-        `You have a new appointment request for ${new Date(date).toDateString()} from ${startTime} to ${endTime}. Please log in to confirm or cancel.`
-      );
-    }
-
-    res.status(201).json(newAppointment);
-  } catch (error) {
-    res.status(500).json({ message: 'Error creating appointment', error: error.message });
+// PUT /api/appointments/:id/status — faculty/admin confirm, cancel or complete.
+exports.updateAppointmentStatus = asyncHandler(async (req, res) => {
+  const { status } = req.body;
+  if (!['confirmed', 'cancelled', 'completed'].includes(status)) {
+    throw ApiError.badRequest('Status must be confirmed, cancelled or completed');
   }
-};
 
-exports.getAppointments = async (req, res) => {
-  try {
-    let query = {};
-    if (req.user.role === 'student') {
-      query.studentId = req.user.id;
-    } else if (req.user.role === 'faculty') {
-      query.facultyId = req.user.id;
-    }
+  const appointment = await Appointment.findById(req.params.id).populate('studentId', 'name email');
+  if (!appointment) throw ApiError.notFound('Appointment not found');
 
-    const appointments = await Appointment.find(query)
-      .populate('studentId', 'name email')
-      .populate('facultyId', 'name email')
-      .sort({ date: 1 });
-
-    res.status(200).json(appointments);
-  } catch (error) {
-    res.status(500).json({ message: 'Error fetching appointments', error: error.message });
+  // Faculty can only act on their own appointments; admins can act on any.
+  if (req.user.role === 'faculty' && appointment.facultyId.toString() !== req.user.id) {
+    throw ApiError.forbidden('You can only manage your own appointments');
   }
-};
 
-exports.updateAppointmentStatus = async (req, res) => {
-  try {
-    if (req.user.role !== 'faculty' && req.user.role !== 'admin') {
-      return res.status(403).json({ message: 'Access denied.' });
-    }
+  appointment.status = status;
+  await appointment.save();
 
-    const { id } = req.params;
-    const { status } = req.body; // 'confirmed' or 'cancelled'
-
-    const appointment = await Appointment.findByIdAndUpdate(id, { status }, { new: true })
-      .populate('studentId', 'name email');
-
-    if (appointment && appointment.studentId) {
-      sendEmail(
-        appointment.studentId.email,
-        `Appointment ${status.charAt(0).toUpperCase() + status.slice(1)}`,
-        `Your appointment on ${new Date(appointment.date).toDateString()} from ${appointment.startTime} to ${appointment.endTime} has been ${status}.`
-      );
-    }
-
-    res.status(200).json(appointment);
-  } catch (error) {
-    res.status(500).json({ message: 'Error updating appointment', error: error.message });
+  if (appointment.studentId) {
+    sendEmail(
+      appointment.studentId.email,
+      `Appointment ${status}`,
+      `Your appointment on ${new Date(appointment.date).toDateString()} from ${appointment.startTime} to ${appointment.endTime} has been ${status}.`
+    );
   }
-};
+
+  res.json(appointment);
+});
