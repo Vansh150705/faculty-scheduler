@@ -121,3 +121,67 @@ exports.updateAppointmentStatus = asyncHandler(async (req, res) => {
 
   res.json(appointment);
 });
+
+// DELETE /api/appointments/:id — a student cancels their own booking.
+exports.cancelAppointment = asyncHandler(async (req, res) => {
+  const appointment = await Appointment.findById(req.params.id).populate('facultyId', 'name email');
+  if (!appointment) throw ApiError.notFound('Appointment not found');
+
+  if (appointment.studentId.toString() !== req.user.id) {
+    throw ApiError.forbidden('You can only cancel your own appointments');
+  }
+  if (appointment.status === 'cancelled') {
+    throw ApiError.badRequest('Appointment is already cancelled');
+  }
+
+  appointment.status = 'cancelled';
+  await appointment.save();
+
+  if (appointment.facultyId) {
+    sendEmail(
+      appointment.facultyId.email,
+      'Appointment Cancelled',
+      `A student cancelled their appointment on ${new Date(appointment.date).toDateString()} from ${appointment.startTime} to ${appointment.endTime}.`
+    );
+  }
+
+  res.json(appointment);
+});
+
+// PUT /api/appointments/:id/reschedule — a student moves their booking to a
+// new date/time, re-running the double-booking check.
+exports.rescheduleAppointment = asyncHandler(async (req, res) => {
+  const { date, startTime, endTime } = req.body;
+  validateTimeRange(startTime, endTime);
+
+  const appointment = await Appointment.findById(req.params.id);
+  if (!appointment) throw ApiError.notFound('Appointment not found');
+  if (appointment.studentId.toString() !== req.user.id) {
+    throw ApiError.forbidden('You can only reschedule your own appointments');
+  }
+
+  const newDate = new Date(date);
+  if (Number.isNaN(newDate.getTime())) throw ApiError.badRequest('Invalid date');
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  if (newDate < today) throw ApiError.badRequest('Cannot reschedule to a past date');
+
+  const { start, end } = dayBounds(newDate);
+  const sameDay = await Appointment.find({
+    _id: { $ne: appointment._id },
+    facultyId: appointment.facultyId,
+    date: { $gte: start, $lt: end },
+    status: { $in: ['pending', 'confirmed'] },
+  });
+  if (sameDay.some((a) => overlaps(startTime, endTime, a.startTime, a.endTime))) {
+    throw ApiError.conflict('That time slot is already booked. Please choose another.');
+  }
+
+  appointment.date = newDate;
+  appointment.startTime = startTime;
+  appointment.endTime = endTime;
+  appointment.status = 'pending'; // needs re-confirmation after a change
+  await appointment.save();
+
+  res.json(appointment);
+});
