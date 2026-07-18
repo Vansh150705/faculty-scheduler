@@ -106,6 +106,23 @@ exports.getAppointments = asyncHandler(async (req, res) => {
   res.json(appointments);
 });
 
+// GET /api/appointments/:id — fetch a single appointment the caller is party to.
+exports.getAppointmentById = asyncHandler(async (req, res) => {
+  const appointment = await Appointment.findById(req.params.id)
+    .populate('studentId', 'name email')
+    .populate('facultyId', 'name email department');
+  if (!appointment) throw ApiError.notFound('Appointment not found');
+
+  const { role, id } = req.user;
+  const isParty =
+    role === 'admin' ||
+    appointment.studentId?._id?.toString() === id ||
+    appointment.facultyId?._id?.toString() === id;
+  if (!isParty) throw ApiError.forbidden('You do not have access to this appointment');
+
+  res.json(appointment);
+});
+
 // PUT /api/appointments/:id/status — faculty/admin confirm, cancel or complete.
 exports.updateAppointmentStatus = asyncHandler(async (req, res) => {
   const { status } = req.body;
