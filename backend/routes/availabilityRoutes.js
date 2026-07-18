@@ -1,11 +1,18 @@
 const express = require('express');
 const router = express.Router();
-const { createAvailability, getAvailability, deleteAvailability } = require('../controllers/availabilityController');
+const {
+  createAvailability,
+  getAvailability,
+  deleteAvailability,
+} = require('../controllers/availabilityController');
 const authMiddleware = require('../middleware/authMiddleware');
+const authorize = require('../middleware/authorize');
 
-router.post('/', authMiddleware, createAvailability);
-router.get('/', authMiddleware, getAvailability);
-router.get('/:facultyId', authMiddleware, getAvailability);
-router.delete('/:id', authMiddleware, deleteAvailability);
+router.use(authMiddleware);
+
+router.post('/', authorize('faculty'), createAvailability);
+router.get('/', getAvailability);
+router.get('/:facultyId', getAvailability);
+router.delete('/:id', authorize('faculty', 'admin'), deleteAvailability);
 
 module.exports = router;
