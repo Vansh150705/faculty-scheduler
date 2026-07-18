@@ -92,11 +92,17 @@ exports.getAppointments = asyncHandler(async (req, res) => {
     query.date = { $gte: now };
   }
 
-  const appointments = await Appointment.find(query)
+  // Optional cap on how many results come back (e.g. ?limit=20). Left off,
+  // the full role-scoped list is returned for backward compatibility.
+  const limit = Math.min(parseInt(req.query.limit, 10) || 0, 200);
+
+  let cursor = Appointment.find(query)
     .populate('studentId', 'name email')
     .populate('facultyId', 'name email department')
     .sort({ date: 1, startTime: 1 });
+  if (limit > 0) cursor = cursor.limit(limit);
 
+  const appointments = await cursor;
   res.json(appointments);
 });
 
