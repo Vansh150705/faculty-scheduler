@@ -3,6 +3,7 @@ const User = require('../models/User');
 const asyncHandler = require('../utils/asyncHandler');
 const ApiError = require('../utils/ApiError');
 const { sendEmail } = require('../utils/mailer');
+const notify = require('../utils/notify');
 const { validateTimeRange, toMinutes } = require('../utils/validators');
 
 // Start/end of the calendar day for a given date, used to match all
@@ -66,6 +67,12 @@ exports.createAppointment = asyncHandler(async (req, res) => {
       (reason ? `\nReason: ${reason}` : '') +
       '\nPlease log in to confirm or cancel.'
   );
+  notify(
+    facultyId,
+    'appointment_created',
+    `New appointment request from ${req.user.name} on ${bookingDate.toDateString()} at ${startTime}`,
+    appointment._id
+  );
 
   res.status(201).json(appointment);
 });
@@ -117,6 +124,12 @@ exports.updateAppointmentStatus = asyncHandler(async (req, res) => {
       `Appointment ${status}`,
       `Your appointment on ${new Date(appointment.date).toDateString()} from ${appointment.startTime} to ${appointment.endTime} has been ${status}.`
     );
+    notify(
+      appointment.studentId._id,
+      `appointment_${status}`,
+      `Your appointment on ${new Date(appointment.date).toDateString()} at ${appointment.startTime} was ${status}`,
+      appointment._id
+    );
   }
 
   res.json(appointment);
@@ -142,6 +155,12 @@ exports.cancelAppointment = asyncHandler(async (req, res) => {
       appointment.facultyId.email,
       'Appointment Cancelled',
       `A student cancelled their appointment on ${new Date(appointment.date).toDateString()} from ${appointment.startTime} to ${appointment.endTime}.`
+    );
+    notify(
+      appointment.facultyId._id,
+      'appointment_cancelled',
+      `${req.user.name} cancelled their appointment on ${new Date(appointment.date).toDateString()} at ${appointment.startTime}`,
+      appointment._id
     );
   }
 
@@ -182,6 +201,13 @@ exports.rescheduleAppointment = asyncHandler(async (req, res) => {
   appointment.endTime = endTime;
   appointment.status = 'pending'; // needs re-confirmation after a change
   await appointment.save();
+
+  notify(
+    appointment.facultyId,
+    'appointment_rescheduled',
+    `${req.user.name} rescheduled an appointment to ${newDate.toDateString()} at ${startTime}`,
+    appointment._id
+  );
 
   res.json(appointment);
 });
