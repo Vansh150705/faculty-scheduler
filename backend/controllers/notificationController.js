@@ -28,3 +28,9 @@ exports.markAllRead = asyncHandler(async (req, res) => {
   await Notification.updateMany({ userId: req.user.id, read: false }, { read: true });
   res.json({ message: 'All notifications marked as read' });
 });
+
+// DELETE /api/notifications — clear the current user's notifications.
+exports.clearAll = asyncHandler(async (req, res) => {
+  const { deletedCount } = await Notification.deleteMany({ userId: req.user.id });
+  res.json({ message: 'Notifications cleared', deleted: deletedCount });
+});
