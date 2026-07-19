@@ -1,7 +1,12 @@
 const Availability = require('../models/Availability');
+const Appointment = require('../models/Appointment');
 const asyncHandler = require('../utils/asyncHandler');
 const ApiError = require('../utils/ApiError');
-const { validateTimeRange } = require('../utils/validators');
+const { validateTimeRange, toMinutes } = require('../utils/validators');
+
+const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const pad = (n) => String(n).padStart(2, '0');
+const fromMinutes = (m) => `${pad(Math.floor(m / 60))}:${pad(m % 60)}`;
 
 // POST /api/availability — faculty add a weekly time slot. (role enforced in route)
 exports.createAvailability = asyncHandler(async (req, res) => {
@@ -44,4 +49,43 @@ exports.deleteAvailability = asyncHandler(async (req, res) => {
 
   await availability.deleteOne();
   res.json({ message: 'Availability deleted successfully' });
+});
+
+// GET /api/availability/:facultyId/slots?date=YYYY-MM-DD
+// Expands a faculty member's weekly availability for the given date into
+// concrete bookable slots and marks the ones already taken.
+exports.getSlots = asyncHandler(async (req, res) => {
+  const { facultyId } = req.params;
+  const { date } = req.query;
+  if (!date) throw ApiError.badRequest('A date query parameter is required');
+
+  const target = new Date(date);
+  if (Number.isNaN(target.getTime())) throw ApiError.badRequest('Invalid date');
+  const dayName = DAY_NAMES[target.getDay()];
+
+  const windows = await Availability.find({ facultyId, dayOfWeek: dayName });
+
+  // Existing pending/confirmed appointments on that day, to flag taken slots.
+  const start = new Date(target);
+  start.setHours(0, 0, 0, 0);
+  const end = new Date(start);
+  end.setDate(end.getDate() + 1);
+  const taken = await Appointment.find({
+    facultyId,
+    date: { $gte: start, $lt: end },
+    status: { $in: ['pending', 'confirmed'] },
+  }).select('startTime endTime');
+  const takenRanges = taken.map((a) => [toMinutes(a.startTime), toMinutes(a.endTime)]);
+
+  const slots = [];
+  windows.forEach((w) => {
+    const step = w.slotDuration || 30;
+    for (let t = toMinutes(w.startTime); t + step <= toMinutes(w.endTime); t += step) {
+      const isTaken = takenRanges.some(([s, e]) => t < e && s < t + step);
+      slots.push({ startTime: fromMinutes(t), endTime: fromMinutes(t + step), booked: isTaken });
+    }
+  });
+  slots.sort((a, b) => toMinutes(a.startTime) - toMinutes(b.startTime));
+
+  res.json({ date, dayOfWeek: dayName, slots });
 });
