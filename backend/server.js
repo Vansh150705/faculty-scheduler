@@ -17,6 +17,7 @@ app.use('/api/health', require('./routes/healthRoutes'));
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/availability', require('./routes/availabilityRoutes'));
 app.use('/api/appointments', require('./routes/appointmentRoutes'));
+app.use('/api/notifications', require('./routes/notificationRoutes'));
 
 // 404 + centralised error handling (must be registered last).
 app.use(notFound);
