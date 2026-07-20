@@ -4,10 +4,12 @@ const cors = require('cors');
 const config = require('./config/env');
 const connectDB = require('./config/db');
 const requestLogger = require('./middleware/requestLogger');
+const securityHeaders = require('./middleware/securityHeaders');
 const { notFound, errorHandler } = require('./middleware/errorHandler');
 
 const app = express();
 
+app.use(securityHeaders);
 app.use(cors({ origin: config.clientUrl === '*' ? true : [config.clientUrl, 'http://localhost:5173', 'http://localhost:3000'] }));
 app.use(express.json());
 app.use(requestLogger);
@@ -18,6 +20,8 @@ app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/availability', require('./routes/availabilityRoutes'));
 app.use('/api/appointments', require('./routes/appointmentRoutes'));
 app.use('/api/notifications', require('./routes/notificationRoutes'));
+app.use('/api/stats', require('./routes/statsRoutes'));
+app.use('/api/admin', require('./routes/adminRoutes'));
 
 // 404 + centralised error handling (must be registered last).
 app.use(notFound);
