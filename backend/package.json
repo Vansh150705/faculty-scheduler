@@ -9,8 +9,11 @@
   },
   "keywords": ["scheduler", "express", "mongodb", "appointments"],
   "author": "Vansh150705",
-  "license": "ISC",
+  "license": "MIT",
   "description": "REST API for the Faculty Scheduler appointment booking platform",
+  "engines": {
+    "node": ">=18"
+  },
   "dependencies": {
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
