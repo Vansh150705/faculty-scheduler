@@ -1,6 +1,8 @@
 import React, { useContext } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, AuthContext } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
+import { ToastProvider } from './context/ToastContext';
 import Navbar from './components/Navbar';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -39,11 +41,15 @@ const AppRoutes = () => {
 
 function App() {
   return (
-    <AuthProvider>
-      <Router>
-        <AppRoutes />
-      </Router>
-    </AuthProvider>
+    <ThemeProvider>
+      <ToastProvider>
+        <AuthProvider>
+          <Router>
+            <AppRoutes />
+          </Router>
+        </AuthProvider>
+      </ToastProvider>
+    </ThemeProvider>
   );
 }
 
