@@ -6,6 +6,7 @@ import { ToastProvider } from './context/ToastContext';
 import { useTheme } from './context/ThemeContext';
 import { Sun, Moon } from 'lucide-react';
 import Navbar from './components/Navbar';
+import ErrorBoundary from './components/ErrorBoundary';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
@@ -54,6 +55,7 @@ const AppRoutes = () => {
       </div>
       {user ? <Navbar /> : <FloatingThemeToggle />}
       <main className="main-content">
+        <ErrorBoundary>
         <Routes>
           <Route path="/" element={user ? <Navigate to="/dashboard" /> : <Navigate to="/login" />} />
           <Route path="/login" element={<Login />} />
@@ -63,6 +65,7 @@ const AppRoutes = () => {
           <Route path="/admin" element={<ProtectedRoute allowedRoles={['admin']}><AdminDashboard /></ProtectedRoute>} />
           <Route path="*" element={<Navigate to={user ? '/dashboard' : '/login'} />} />
         </Routes>
+        </ErrorBoundary>
       </main>
     </div>
   );
