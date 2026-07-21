@@ -1,33 +1,50 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600&display=swap');
 
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 :root {
   /* Ultra-Premium Light Mode Palette */
   --primary: #4F46E5; /* Indigo 600 - deep and elegant */
   --primary-hover: #4338CA;
   --primary-light: #EEF2FF;
   --primary-glow: rgba(79, 70, 229, 0.3);
-  
+
   --secondary: #0EA5E9; /* Sky 500 - vibrant and welcoming */
   --secondary-hover: #0284C7;
-  
+
   --accent: #EC4898; /* Pink 500 */
-  
+
   --background: #F8FAFC; /* Slate 50 */
   --surface: rgba(255, 255, 255, 0.7);
   --surface-solid: #FFFFFF;
   --surface-hover: rgba(255, 255, 255, 0.9);
-  
+
   --text-main: #0F172A; /* Slate 900 */
   --text-muted: #475569; /* Slate 600 */
   --text-light: #94A3B8; /* Slate 400 */
-  
+
   --border: rgba(226, 232, 240, 0.8);
   --border-light: rgba(241, 245, 249, 0.5);
-  
+
   --danger: #EF4444;
   --warning: #F59E0B;
   --success: #10B981;
-  
+
+  /* RGB channels (space-separated) power Tailwind's <alpha-value> so that
+     opacity modifiers like border-warning/30 work against these tokens. */
+  --primary-rgb: 79 70 229;
+  --secondary-rgb: 14 165 233;
+  --danger-rgb: 239 68 68;
+  --warning-rgb: 245 158 11;
+  --success-rgb: 16 185 129;
+
+  /* Glass surfaces (adapt in dark mode). */
+  --glass-bg: rgba(255, 255, 255, 0.65);
+  --glass-border: rgba(255, 255, 255, 0.9);
+  --glass-nav-bg: rgba(255, 255, 255, 0.8);
+
   /* Advanced Shadows */
   --shadow-sm: 0 2px 4px rgba(15, 23, 42, 0.04);
   --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.06), 0 2px 4px rgba(15, 23, 42, 0.04);
@@ -46,6 +63,46 @@
   --transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
   --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   --transition-slow: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* Dark mode — toggled by setting data-theme="dark" on <html>. Only the design
+   tokens change; every component and Tailwind colour utility follows. */
+:root[data-theme='dark'] {
+  --primary: #818CF8;
+  --primary-hover: #6366F1;
+  --primary-light: #1E1B4B;
+  --primary-glow: rgba(129, 140, 248, 0.35);
+
+  --secondary: #38BDF8;
+  --secondary-hover: #0EA5E9;
+
+  --accent: #F472B6;
+
+  --background: #0B1120;
+  --surface: rgba(30, 41, 59, 0.6);
+  --surface-solid: #111827;
+  --surface-hover: rgba(30, 41, 59, 0.9);
+
+  --text-main: #F1F5F9;
+  --text-muted: #94A3B8;
+  --text-light: #64748B;
+
+  --border: rgba(51, 65, 85, 0.7);
+  --border-light: rgba(30, 41, 59, 0.6);
+
+  --danger: #F87171;
+  --warning: #FBBF24;
+  --success: #34D399;
+
+  --primary-rgb: 129 140 248;
+  --secondary-rgb: 56 189 248;
+  --danger-rgb: 248 113 113;
+  --warning-rgb: 251 191 36;
+  --success-rgb: 52 211 153;
+
+  --glass-bg: rgba(30, 41, 59, 0.55);
+  --glass-border: rgba(148, 163, 184, 0.14);
+  --glass-nav-bg: rgba(17, 24, 39, 0.75);
 }
 
 * {
@@ -108,10 +165,10 @@ p {
 
 /* Premium Glassmorphism */
 .glass-panel {
-  background: rgba(255, 255, 255, 0.65);
+  background: var(--glass-bg);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--glass-border);
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 24px 48px -12px rgba(15, 23, 42, 0.08);
   border-radius: var(--radius-xl);
   position: relative;
@@ -129,10 +186,10 @@ p {
 }
 
 .glass-nav {
-  background: rgba(255, 255, 255, 0.8);
+  background: var(--glass-nav-bg);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--border);
+  border: 1px solid var(--glass-border);
 }
 
 .glass-card {
@@ -311,7 +368,7 @@ p {
 }
 
 .btn-secondary {
-  background-color: white;
+  background-color: var(--surface-solid);
   color: var(--text-main);
   border: 1px solid var(--border);
   box-shadow: var(--shadow-sm);
@@ -412,44 +469,8 @@ p {
   background: var(--text-light);
 }
 
-/* Utilities */
-.flex { display: flex; }
-.flex-col { flex-direction: column; }
-.items-center { align-items: center; }
-.justify-between { justify-content: space-between; }
-.justify-center { justify-content: center; }
-.gap-2 { gap: 0.5rem; }
-.gap-4 { gap: 1rem; }
-.gap-6 { gap: 1.5rem; }
-.gap-8 { gap: 2rem; }
-.mt-2 { margin-top: 0.5rem; }
-.mt-4 { margin-top: 1rem; }
-.mt-6 { margin-top: 1.5rem; }
-.mt-8 { margin-top: 2rem; }
-.mb-2 { margin-bottom: 0.5rem; }
-.mb-4 { margin-bottom: 1rem; }
-.mb-6 { margin-bottom: 1.5rem; }
-.mb-8 { margin-bottom: 2rem; }
-.p-6 { padding: 1.5rem; }
-.p-8 { padding: 2rem; }
-.w-full { width: 100%; }
-.h-full { height: 100%; }
-.text-center { text-align: center; }
-.relative { position: relative; }
-.absolute { position: absolute; }
-.overflow-hidden { overflow: hidden; }
-
-/* Grids */
-.grid { display: grid; }
-.grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
-@media (min-width: 768px) {
-  .md\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .md\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-}
-@media (min-width: 1024px) {
-  .lg\:grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .lg\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-}
+/* Layout and spacing utilities are now provided by Tailwind (see
+   tailwind.config.js). Only bespoke component styles live in this file. */
 
 /* Data Tables */
 .table-container {
