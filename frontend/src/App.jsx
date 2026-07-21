@@ -7,6 +7,7 @@ import { useTheme } from './context/ThemeContext';
 import { Sun, Moon } from 'lucide-react';
 import Navbar from './components/Navbar';
 import ErrorBoundary from './components/ErrorBoundary';
+import ScrollToTop from './components/ScrollToTop';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
@@ -50,6 +51,7 @@ const AppRoutes = () => {
   const { user } = useContext(AuthContext);
   return (
     <div className="page-wrapper">
+      <ScrollToTop />
       <div className="hero-gradient">
         <div className="hero-gradient-blob-3"></div>
       </div>
