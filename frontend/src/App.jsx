@@ -3,11 +3,29 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AuthProvider, AuthContext } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { ToastProvider } from './context/ToastContext';
+import { useTheme } from './context/ThemeContext';
+import { Sun, Moon } from 'lucide-react';
 import Navbar from './components/Navbar';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
+import Profile from './pages/Profile';
 import './index.css';
+
+// Floating theme toggle shown on the pre-auth pages (the navbar has its own).
+const FloatingThemeToggle = () => {
+  const { theme, toggleTheme } = useTheme();
+  return (
+    <button
+      onClick={toggleTheme}
+      className="fixed top-6 right-6 z-50 btn-icon bg-surface-solid border border-border shadow-md text-text-muted hover:text-primary"
+      title="Toggle theme"
+      aria-label="Toggle theme"
+    >
+      {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+    </button>
+  );
+};
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, loading } = useContext(AuthContext);
@@ -26,13 +44,14 @@ const AppRoutes = () => {
       <div className="hero-gradient">
         <div className="hero-gradient-blob-3"></div>
       </div>
-      {user && <Navbar />}
+      {user ? <Navbar /> : <FloatingThemeToggle />}
       <main className="main-content">
         <Routes>
           <Route path="/" element={user ? <Navigate to="/dashboard" /> : <Navigate to="/login" />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
         </Routes>
       </main>
     </div>
