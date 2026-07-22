@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect } from 'react';
-import axios from 'axios';
+import api, { getErrorMessage } from '../api/client';
 
 export const AuthContext = createContext();
 
@@ -7,58 +7,62 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Restore the session from localStorage on first load.
   useEffect(() => {
     const token = localStorage.getItem('token');
-    const role = localStorage.getItem('role');
-    const id = localStorage.getItem('id');
-    const name = localStorage.getItem('name');
-    
-    if (token && role && id && name) {
-      setUser({ token, role, id, name });
+    const stored = localStorage.getItem('user');
+    if (token && stored) {
+      try {
+        setUser({ token, ...JSON.parse(stored) });
+      } catch {
+        localStorage.clear();
+      }
     }
     setLoading(false);
   }, []);
 
+  const persist = (token, profile) => {
+    localStorage.setItem('token', token);
+    localStorage.setItem('user', JSON.stringify(profile));
+    setUser({ token, ...profile });
+  };
+
   const login = async (email, password) => {
     try {
-      const res = await axios.post('http://localhost:5000/api/auth/login', { email: email.trim(), password });
-      const data = res.data;
-      
-      // Assume the backend returns token and some user info
-      // Wait, let's look at authController to see what it returns...
-      // Usually it returns token and user object. Let's assume standard response.
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('role', data.user.role);
-      localStorage.setItem('id', data.user.id);
-      localStorage.setItem('name', data.user.name);
-      
-      setUser({ token: data.token, role: data.user.role, id: data.user.id, name: data.user.name });
+      const { data } = await api.post('/auth/login', { email: email.trim(), password });
+      persist(data.token, data.user);
       return { success: true };
     } catch (error) {
-      return { success: false, message: error.response?.data?.msg || error.response?.data?.message || 'Login failed' };
+      return { success: false, message: getErrorMessage(error, 'Login failed') };
     }
   };
 
   const register = async (name, email, password, role) => {
     try {
-      const res = await axios.post('http://localhost:5000/api/auth/register', { name, email: email.trim(), password, role });
-      // Usually register might not auto login, or it does. Let's just return success
+      await api.post('/auth/register', { name, email: email.trim(), password, role });
       return { success: true };
     } catch (error) {
-      return { success: false, message: error.response?.data?.msg || error.response?.data?.message || 'Registration failed' };
+      return { success: false, message: getErrorMessage(error, 'Registration failed') };
     }
-  }
+  };
+
+  // Merge updated profile fields (e.g. after editing settings) into context.
+  const updateUser = (patch) => {
+    setUser((current) => {
+      const next = { ...current, ...patch };
+      const { token, ...profile } = next;
+      localStorage.setItem('user', JSON.stringify(profile));
+      return next;
+    });
+  };
 
   const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('role');
-    localStorage.removeItem('id');
-    localStorage.removeItem('name');
+    localStorage.clear();
     setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, loading }}>
+    <AuthContext.Provider value={{ user, login, register, logout, updateUser, loading }}>
       {children}
     </AuthContext.Provider>
   );
