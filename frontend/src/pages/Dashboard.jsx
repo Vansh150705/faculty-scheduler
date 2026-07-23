@@ -1,8 +1,10 @@
 import React, { useContext } from 'react';
+import { Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import FacultyScheduler from './FacultyScheduler';
 import StudentBooking from './StudentBooking';
-import { LayoutDashboard } from 'lucide-react';
+import StatsGrid from '../components/StatsGrid';
+import { LayoutDashboard, ArrowRight } from 'lucide-react';
 
 const Dashboard = () => {
   const { user } = useContext(AuthContext);
@@ -27,16 +29,21 @@ const Dashboard = () => {
         </div>
       </div>
 
+      {(user.role === 'faculty' || user.role === 'student') && <StatsGrid />}
+
       <div className="animate-slide-up delay-200">
         {user.role === 'faculty' && <FacultyScheduler />}
         {user.role === 'student' && <StudentBooking />}
         {user.role === 'admin' && (
-          <div className="glass-card p-12 text-center mt-8 border-dashed border-2">
-            <div className="w-16 h-16 mx-auto bg-gray-100 rounded-full flex items-center justify-center mb-4">
-              <LayoutDashboard className="text-gray-400" size={24} />
+          <div className="glass-card p-12 text-center mt-4 border-dashed border-2 border-border">
+            <div className="w-16 h-16 mx-auto bg-primary-light text-primary rounded-full flex items-center justify-center mb-4">
+              <LayoutDashboard size={24} />
             </div>
-            <h2 className="text-2xl font-bold mb-2">Admin Dashboard</h2>
-            <p className="text-text-muted">Advanced administrative features are currently in development.</p>
+            <h2 className="text-2xl font-bold mb-2 text-text-main">Administration</h2>
+            <p className="text-text-muted mb-6">Manage users and view system-wide analytics.</p>
+            <Link to="/admin" className="btn btn-primary inline-flex">
+              Open Admin Panel <ArrowRight size={18} />
+            </Link>
           </div>
         )}
       </div>
