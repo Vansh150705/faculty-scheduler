@@ -3,6 +3,7 @@ import { AuthContext } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import api, { getErrorMessage } from '../api/client';
 import CalendarView from '../components/CalendarView';
+import EmptyState from '../components/EmptyState';
 import { exportCSV, exportICS } from '../utils/exportCalendar';
 import {
   Clock, Plus, Trash2, Calendar as CalendarIcon, CheckCircle, XCircle,
@@ -191,13 +192,11 @@ const FacultyScheduler = () => {
           {view === 'calendar' ? (
             <CalendarView appointments={appointments} counterpart={studentName} />
           ) : visible.length === 0 ? (
-            <div className="text-center py-20 border-2 border-dashed border-border rounded-2xl bg-surface-hover">
-              <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-surface-solid text-text-light shadow-sm mb-6">
-                <CalendarIcon size={40} />
-              </div>
-              <h3 className="text-xl font-bold text-text-main">No {filter === 'all' ? '' : filter} appointments</h3>
-              <p className="text-text-muted mt-2 max-w-sm mx-auto">When students book with you, they'll appear here.</p>
-            </div>
+            <EmptyState
+              icon={CalendarIcon}
+              title={filter === 'all' ? 'No appointments yet' : `No ${filter} appointments`}
+              message="When students book with you, they'll appear here."
+            />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {visible.map((appt, index) => (
