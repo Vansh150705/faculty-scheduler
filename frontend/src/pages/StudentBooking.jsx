@@ -4,6 +4,7 @@ import { useToast } from '../context/ToastContext';
 import api, { getErrorMessage } from '../api/client';
 import CalendarView from '../components/CalendarView';
 import RescheduleModal from '../components/RescheduleModal';
+import EmptyState from '../components/EmptyState';
 import { exportCSV, exportICS } from '../utils/exportCalendar';
 import {
   Search, Calendar as CalendarIcon, Clock, User as UserIcon, CalendarDays,
@@ -277,13 +278,7 @@ const StudentBooking = () => {
               ))}
 
               {myAppointments.length === 0 && (
-                <div className="text-center py-16 border-2 border-dashed border-border rounded-2xl bg-surface-hover">
-                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-surface-solid text-text-light shadow-sm mb-4">
-                    <CalendarDays size={32} />
-                  </div>
-                  <p className="text-text-main font-bold mb-1">No bookings yet</p>
-                  <p className="text-text-muted text-sm m-0">Pick a faculty member to get started.</p>
-                </div>
+                <EmptyState icon={CalendarDays} title="No bookings yet" message="Pick a faculty member to get started." />
               )}
             </div>
           )}
