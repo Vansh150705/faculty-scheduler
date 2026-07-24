@@ -8,6 +8,7 @@ import { Sun, Moon } from 'lucide-react';
 import Navbar from './components/Navbar';
 import ErrorBoundary from './components/ErrorBoundary';
 import ScrollToTop from './components/ScrollToTop';
+import Footer from './components/Footer';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
@@ -69,6 +70,7 @@ const AppRoutes = () => {
         </Routes>
         </ErrorBoundary>
       </main>
+      {user && <Footer />}
     </div>
   );
 };
