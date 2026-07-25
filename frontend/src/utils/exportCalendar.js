@@ -17,9 +17,22 @@ const triggerDownload = (filename, content, mime) => {
 };
 
 const csvCell = (value) => {
-  const s = String(value ?? '');
+  let s = String(value ?? '');
+  // Neutralise CSV formula injection: a value starting with = + - @ (or tab/CR)
+  // can be executed as a formula by Excel/Sheets. Prefix a single quote.
+  if (/^[=+\-@\t\r]/.test(s)) s = `'${s}`;
   return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 };
+
+// Escape a value for an iCalendar TEXT field (RFC 5545) and strip control chars
+// so it cannot break out of the property or inject new ones (CRLF injection).
+const icsText = (value) =>
+  String(value ?? '')
+    .replace(/\\/g, '\\\\')
+    .replace(/\r?\n/g, '\\n')
+    .replace(/[;,]/g, (m) => `\\${m}`)
+    // eslint-disable-next-line no-control-regex
+    .replace(/[\x00-\x08\x0b\x0c\x0e-\x1f]/g, '');
 
 export const exportCSV = (appointments, counterpart) => {
   const header = ['With', 'Date', 'Start', 'End', 'Status', 'Reason'];
@@ -53,8 +66,8 @@ export const exportICS = (appointments, counterpart) => {
       `UID:${a._id || i}@facultyscheduler`,
       `DTSTART:${toICSDate(a.date, a.startTime)}`,
       `DTEND:${toICSDate(a.date, a.endTime)}`,
-      `SUMMARY:Appointment with ${counterpart(a)}`,
-      `DESCRIPTION:${(a.reason || 'Faculty appointment').replace(/\n/g, ' ')} (status: ${a.status})`,
+      `SUMMARY:Appointment with ${icsText(counterpart(a))}`,
+      `DESCRIPTION:${icsText(a.reason || 'Faculty appointment')} (status: ${icsText(a.status)})`,
       'END:VEVENT'
     );
   });
