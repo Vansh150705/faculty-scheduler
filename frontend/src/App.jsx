@@ -28,13 +28,20 @@ const FloatingThemeToggle = () => {
   );
 };
 
+const LoadingScreen = () => (
+  <div className="flex flex-col justify-center items-center h-screen gap-4">
+    <div className="w-10 h-10 rounded-full border-4 border-border border-t-primary animate-spin" />
+    <p className="text-text-muted text-sm font-medium m-0">Loading…</p>
+  </div>
+);
+
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, loading } = useContext(AuthContext);
-  
-  if (loading) return <div className="flex justify-center items-center h-screen"><div className="animate-pulse">Loading...</div></div>;
+
+  if (loading) return <LoadingScreen />;
   if (!user) return <Navigate to="/login" />;
   if (allowedRoles && !allowedRoles.includes(user.role)) return <Navigate to="/dashboard" />;
-  
+
   return children;
 };
 
@@ -54,6 +61,7 @@ const AppRoutes = () => {
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="/admin" element={<ProtectedRoute allowedRoles={['admin']}><AdminDashboard /></ProtectedRoute>} />
+          <Route path="*" element={<Navigate to={user ? '/dashboard' : '/login'} />} />
         </Routes>
       </main>
     </div>
