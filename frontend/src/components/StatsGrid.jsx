@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { CalendarClock, CalendarCheck, Clock, CheckCircle2, Layers } from 'lucide-react';
 import api from '../api/client';
 import StatCard from './StatCard';
+import Skeleton from './Skeleton';
 
 // Minimal, dependency-free bar chart for the weekday distribution.
 const WeekdayChart = ({ data }) => {
@@ -36,7 +37,16 @@ const StatsGrid = () => {
       .catch(() => {});
   }, []);
 
-  if (!stats) return null;
+  // Placeholder tiles while the analytics request is in flight.
+  if (!stats) {
+    return (
+      <div className="mb-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Skeleton key={i} className="h-[92px]" />
+        ))}
+      </div>
+    );
+  }
 
   const cards = [
     { icon: CalendarClock, label: 'Total appointments', value: stats.total, accent: 'primary' },
