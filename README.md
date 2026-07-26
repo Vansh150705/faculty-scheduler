@@ -105,6 +105,29 @@ Full reference in [`backend/README.md`](backend/README.md).
 
 ---
 
+## 🛠️ Available scripts
+
+**Backend** (`cd backend`)
+
+| Script          | Description                                 |
+| --------------- | ------------------------------------------- |
+| `npm run dev`   | Start with auto-reload (`node --watch`)     |
+| `npm start`     | Start the server                            |
+| `npm run seed`  | Reset and load demo data                    |
+
+**Frontend** (`cd frontend`)
+
+| Script            | Description                    |
+| ----------------- | ------------------------------ |
+| `npm run dev`     | Vite dev server (port 5173)    |
+| `npm run build`   | Production build to `dist/`    |
+| `npm run preview` | Preview the production build   |
+| `npm run lint`    | Run ESLint                     |
+
+> Requires Node 18+ (an `.nvmrc` pins Node 22 — run `nvm use`).
+
+---
+
 ## 📝 License
 
 Released under the [MIT License](LICENSE).
