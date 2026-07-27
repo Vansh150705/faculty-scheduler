@@ -2,11 +2,12 @@ import React, { useState, useContext } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import useDocumentTitle from '../hooks/useDocumentTitle';
-import { Mail, Lock, User as UserIcon, Tag, CalendarDays, ArrowRight } from 'lucide-react';
+import { Mail, Lock, User as UserIcon, Tag, CalendarDays, ArrowRight, Eye, EyeOff } from 'lucide-react';
 
 const Register = () => {
   useDocumentTitle('Create account');
   const [name, setName] = useState('');
+  const [showPwd, setShowPwd] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('student');
@@ -85,7 +86,7 @@ const Register = () => {
               <label className="label">Password</label>
               <div className="input-group mb-0">
                 <input
-                  type="password"
+                  type={showPwd ? 'text' : 'password'}
                   required
                   className="input-field has-icon"
                   placeholder="••••••••"
@@ -93,6 +94,15 @@ const Register = () => {
                   onChange={(e) => setPassword(e.target.value)}
                 />
                 <Lock size={20} className="input-icon" />
+                <button
+                  type="button"
+                  onClick={() => setShowPwd(!showPwd)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted hover:text-primary"
+                  aria-label={showPwd ? 'Hide password' : 'Show password'}
+                  tabIndex={-1}
+                >
+                  {showPwd ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
               </div>
             </div>
 
