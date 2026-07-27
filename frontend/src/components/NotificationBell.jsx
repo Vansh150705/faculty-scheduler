@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Bell, Check, CheckCheck } from 'lucide-react';
+import { Bell, Check, CheckCheck, Trash2 } from 'lucide-react';
 import api from '../api/client';
 
 // Relative "time ago" label without pulling in a date library.
@@ -62,6 +62,16 @@ const NotificationBell = () => {
     }
   };
 
+  const clearAll = async () => {
+    try {
+      await api.delete('/notifications');
+      setItems([]);
+      setUnread(0);
+    } catch {
+      /* ignore */
+    }
+  };
+
   return (
     <div className="relative" ref={ref}>
       <button
@@ -82,14 +92,24 @@ const NotificationBell = () => {
         <div className="absolute right-0 mt-3 w-80 max-w-[90vw] bg-surface-solid border border-border rounded-2xl shadow-xl overflow-hidden z-50 animate-slide-up">
           <div className="flex items-center justify-between px-4 py-3 border-b border-border">
             <span className="font-bold text-text-main">Notifications</span>
-            {unread > 0 && (
-              <button
-                onClick={markAll}
-                className="text-xs text-primary font-semibold flex items-center gap-1 hover:underline"
-              >
-                <CheckCheck size={14} /> Mark all read
-              </button>
-            )}
+            <div className="flex items-center gap-3">
+              {unread > 0 && (
+                <button
+                  onClick={markAll}
+                  className="text-xs text-primary font-semibold flex items-center gap-1 hover:underline"
+                >
+                  <CheckCheck size={14} /> Mark all read
+                </button>
+              )}
+              {items.length > 0 && (
+                <button
+                  onClick={clearAll}
+                  className="text-xs text-text-muted font-semibold flex items-center gap-1 hover:text-danger"
+                >
+                  <Trash2 size={14} /> Clear
+                </button>
+              )}
+            </div>
           </div>
           <div className="max-h-96 overflow-y-auto">
             {items.length === 0 ? (
