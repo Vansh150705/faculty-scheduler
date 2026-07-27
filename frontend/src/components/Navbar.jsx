@@ -2,7 +2,7 @@ import React, { useContext, useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-import { LogOut, Calendar, User as UserIcon, Sun, Moon, LayoutDashboard, Settings, Shield } from 'lucide-react';
+import { LogOut, Calendar, User as UserIcon, Sun, Moon, LayoutDashboard, Settings, Shield, Menu, X } from 'lucide-react';
 import NotificationBell from './NotificationBell';
 
 const Navbar = () => {
@@ -11,12 +11,16 @@ const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [scrolled, setScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Close the mobile menu whenever the route changes.
+  useEffect(() => setMenuOpen(false), [location.pathname]);
 
   const handleLogout = () => {
     logout();
@@ -86,8 +90,39 @@ const Navbar = () => {
           >
             <LogOut size={18} className="group-hover:translate-x-1 transition-transform" />
           </button>
+
+          <button
+            onClick={() => setMenuOpen((o) => !o)}
+            className="btn-icon md:hidden text-text-muted hover:text-primary"
+            aria-label="Toggle menu"
+            aria-expanded={menuOpen}
+          >
+            {menuOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
         </div>
       </nav>
+
+      {/* Mobile navigation menu */}
+      {menuOpen && (
+        <div className="md:hidden container mx-auto max-w-6xl px-6 mt-2">
+          <div className="glass-nav rounded-2xl p-3 shadow-lg flex flex-col gap-1 animate-slide-up">
+            {links.map(({ to, label, icon: Icon }) => {
+              const active = location.pathname === to;
+              return (
+                <Link
+                  key={to}
+                  to={to}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold no-underline transition-all ${
+                    active ? 'bg-primary-light text-primary' : 'text-text-muted hover:text-primary hover:bg-primary-light/50'
+                  }`}
+                >
+                  <Icon size={18} /> {label}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
