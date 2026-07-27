@@ -2,11 +2,13 @@ import React, { useContext, useEffect, useState } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import api, { getErrorMessage } from '../api/client';
+import useDocumentTitle from '../hooks/useDocumentTitle';
 import { User as UserIcon, Lock, Save, Building2, Briefcase, Phone, MapPin } from 'lucide-react';
 
 const Profile = () => {
   const { user, updateUser } = useContext(AuthContext);
   const toast = useToast();
+  useDocumentTitle('Profile');
   const isFaculty = user.role === 'faculty';
 
   const [form, setForm] = useState({

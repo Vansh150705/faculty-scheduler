@@ -1,9 +1,11 @@
 import React, { useState, useContext } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
+import useDocumentTitle from '../hooks/useDocumentTitle';
 import { Mail, Lock, User as UserIcon, Tag, CalendarDays, ArrowRight } from 'lucide-react';
 
 const Register = () => {
+  useDocumentTitle('Create account');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

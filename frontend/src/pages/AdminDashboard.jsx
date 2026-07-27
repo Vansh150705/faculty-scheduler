@@ -3,6 +3,7 @@ import { AuthContext } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import api, { getErrorMessage } from '../api/client';
 import StatCard from '../components/StatCard';
+import useDocumentTitle from '../hooks/useDocumentTitle';
 import { Users, GraduationCap, Briefcase, CalendarClock, Search, Trash2, ShieldCheck } from 'lucide-react';
 
 const ROLE_BADGE = {
@@ -14,6 +15,7 @@ const ROLE_BADGE = {
 const AdminDashboard = () => {
   const { user } = useContext(AuthContext);
   const toast = useToast();
+  useDocumentTitle('Admin');
   const [stats, setStats] = useState(null);
   const [users, setUsers] = useState([]);
   const [search, setSearch] = useState('');

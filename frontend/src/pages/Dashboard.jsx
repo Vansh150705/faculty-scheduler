@@ -4,10 +4,12 @@ import { AuthContext } from '../context/AuthContext';
 import FacultyScheduler from './FacultyScheduler';
 import StudentBooking from './StudentBooking';
 import StatsGrid from '../components/StatsGrid';
+import useDocumentTitle from '../hooks/useDocumentTitle';
 import { LayoutDashboard, ArrowRight } from 'lucide-react';
 
 const Dashboard = () => {
   const { user } = useContext(AuthContext);
+  useDocumentTitle('Dashboard');
 
   return (
     <div className="container animate-slide-up">
