@@ -1,5 +1,11 @@
 # 📅 Faculty Scheduler
 
+![CI](https://github.com/Vansh150705/faculty-scheduler/actions/workflows/ci.yml/badge.svg)
+![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)
+![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)
+![Node](https://img.shields.io/badge/Node-%3E%3D18-339933?logo=node.js&logoColor=white)
+![MongoDB](https://img.shields.io/badge/MongoDB-Mongoose-47A248?logo=mongodb&logoColor=white)
+
 A full-stack MERN application for booking office-hour appointments between university **students** and **faculty**, with role-based dashboards, real-time-ish in-app notifications, analytics, and a full admin panel.
 
 > Faculty publish weekly availability → the app expands it into bookable slots → students book, reschedule, or cancel → everyone stays in sync with notifications and email.
