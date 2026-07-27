@@ -1,0 +1,14 @@
+# Normalise line endings across platforms — store LF in the repo.
+* text=auto eol=lf
+
+# Binary assets should never be normalised.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+
+# Keep lockfiles diff-collapsed in reviews.
+package-lock.json linguist-generated=true
