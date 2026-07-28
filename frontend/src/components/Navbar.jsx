@@ -2,7 +2,7 @@ import React, { useContext, useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-import { LogOut, Calendar, User as UserIcon, Sun, Moon, LayoutDashboard, Settings, Shield, Menu, X } from 'lucide-react';
+import { LogOut, Calendar, User as UserIcon, Sun, Moon, LayoutDashboard, Settings, Shield, Menu, X, BarChart3 } from 'lucide-react';
 import NotificationBell from './NotificationBell';
 
 const Navbar = () => {
@@ -29,6 +29,7 @@ const Navbar = () => {
 
   const links = [
     { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    ...(user.role !== 'student' ? [{ to: '/analytics', label: 'Analytics', icon: BarChart3 }] : []),
     ...(user.role === 'admin' ? [{ to: '/admin', label: 'Admin', icon: Shield }] : []),
     { to: '/profile', label: 'Profile', icon: Settings },
   ];

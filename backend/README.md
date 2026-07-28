@@ -96,7 +96,8 @@ All protected routes require an `Authorization: Bearer <token>` header.
 ### Stats & Admin
 | Method | Path                    | Access | Description                     |
 | ------ | ----------------------- | ------ | ------------------------------- |
-| GET    | `/api/stats`            | auth   | Role-tailored analytics         |
+| GET    | `/api/stats`            | auth   | Role-tailored summary metrics   |
+| GET    | `/api/stats/analytics`  | auth   | Chart-ready time series (monthly, hourly, weekday, status) |
 | GET    | `/api/admin/users`      | admin  | List users (`?role=`, `?search=`) |
 | PUT    | `/api/admin/users/:id/role` | admin | Change a user's role         |
 | DELETE | `/api/admin/users/:id`  | admin  | Delete a user + related records |
