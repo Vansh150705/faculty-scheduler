@@ -8,7 +8,7 @@ import EmptyState from '../components/EmptyState';
 import { exportCSV, exportICS } from '../utils/exportCalendar';
 import {
   Search, Calendar as CalendarIcon, Clock, User as UserIcon, CalendarDays,
-  Building2, MapPin, List, LayoutGrid, Download, X, RefreshCw,
+  Building2, MapPin, List, LayoutGrid, Download, X, RefreshCw, Hourglass, BellPlus, Trash2,
 } from 'lucide-react';
 
 const StudentBooking = () => {
@@ -26,8 +26,19 @@ const StudentBooking = () => {
   const [booking, setBooking] = useState(null); // startTime being booked
   const [view, setView] = useState('list');
   const [rescheduleTarget, setRescheduleTarget] = useState(null);
+  const [myWaitlist, setMyWaitlist] = useState([]);
+  const [waitlisting, setWaitlisting] = useState(null); // startTime being waitlisted
 
   const facultyName = (a) => a.facultyId?.name || 'Faculty';
+
+  const fetchWaitlist = async () => {
+    try {
+      const { data } = await api.get('/waitlist/mine');
+      setMyWaitlist(data);
+    } catch (e) {
+      toast.error(getErrorMessage(e));
+    }
+  };
 
   const fetchFaculty = async () => {
     try {
@@ -54,6 +65,7 @@ const StudentBooking = () => {
 
   useEffect(() => {
     fetchMyAppointments();
+    fetchWaitlist();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Load bookable slots whenever a faculty + date are chosen.
@@ -98,6 +110,35 @@ const StudentBooking = () => {
       await api.delete(`/appointments/${id}`);
       toast.success('Appointment cancelled');
       fetchMyAppointments();
+    } catch (e) {
+      toast.error(getErrorMessage(e));
+    }
+  };
+
+  const handleJoinWaitlist = async (slot) => {
+    setWaitlisting(slot.startTime);
+    try {
+      await api.post('/waitlist', {
+        facultyId: selectedFaculty._id,
+        date: bookingDate,
+        startTime: slot.startTime,
+        endTime: slot.endTime,
+        reason,
+      });
+      toast.success("Added to waitlist — we'll notify you if it opens up");
+      fetchWaitlist();
+    } catch (e) {
+      toast.error(getErrorMessage(e));
+    } finally {
+      setWaitlisting(null);
+    }
+  };
+
+  const handleLeaveWaitlist = async (id) => {
+    try {
+      await api.delete(`/waitlist/${id}`);
+      toast.success('Removed from waitlist');
+      fetchWaitlist();
     } catch (e) {
       toast.error(getErrorMessage(e));
     }
@@ -197,22 +238,32 @@ const StudentBooking = () => {
                     <p className="text-text-muted text-sm">Loading slots…</p>
                   ) : (
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                      {slots.map((slot) => (
-                        <button
-                          key={slot.startTime}
-                          onClick={() => handleBook(slot)}
-                          disabled={slot.booked || booking === slot.startTime}
-                          className={`p-3 rounded-xl border text-sm font-semibold transition-all ${
-                            slot.booked
-                              ? 'border-border-light bg-surface-hover text-text-light cursor-not-allowed line-through'
-                              : 'border-border bg-surface text-text-main hover:border-primary hover:text-primary hover:shadow-sm'
-                          }`}
-                        >
-                          {slot.startTime}
-                          {slot.booked && <span className="block text-[10px] font-normal">taken</span>}
-                          {booking === slot.startTime && <span className="block text-[10px] font-normal">booking…</span>}
-                        </button>
-                      ))}
+                      {slots.map((slot) =>
+                        slot.booked ? (
+                          <button
+                            key={slot.startTime}
+                            onClick={() => handleJoinWaitlist(slot)}
+                            disabled={waitlisting === slot.startTime}
+                            title="This slot is taken — join the waitlist to be notified if it opens up"
+                            className="p-3 rounded-xl border border-dashed border-warning/50 bg-warning/5 text-text-muted text-sm font-semibold transition-all hover:bg-warning/10 hover:text-warning"
+                          >
+                            <span className="line-through opacity-70">{slot.startTime}</span>
+                            <span className="flex items-center justify-center gap-1 text-[10px] font-bold mt-0.5">
+                              <BellPlus size={11} /> {waitlisting === slot.startTime ? 'adding…' : 'waitlist'}
+                            </span>
+                          </button>
+                        ) : (
+                          <button
+                            key={slot.startTime}
+                            onClick={() => handleBook(slot)}
+                            disabled={booking === slot.startTime}
+                            className="p-3 rounded-xl border border-border bg-surface text-text-main text-sm font-semibold transition-all hover:border-primary hover:text-primary hover:shadow-sm"
+                          >
+                            {slot.startTime}
+                            {booking === slot.startTime && <span className="block text-[10px] font-normal">booking…</span>}
+                          </button>
+                        )
+                      )}
                       {slots.length === 0 && (
                         <div className="col-span-full text-center py-8 border-2 border-dashed border-border rounded-xl bg-surface-hover">
                           <p className="text-text-muted text-sm font-medium m-0">No slots on this day. Try another date.</p>
@@ -225,6 +276,36 @@ const StudentBooking = () => {
             </div>
           )}
         </div>
+
+        {/* Waitlist */}
+        {myWaitlist.length > 0 && (
+          <div className="glass-card p-8">
+            <div className="flex items-center gap-3 mb-5">
+              <div className="flex items-center justify-center w-11 h-11 rounded-xl bg-warning/10 text-warning shadow-sm">
+                <Hourglass size={22} />
+              </div>
+              <h2 className="text-xl font-extrabold m-0 text-text-main">On the Waitlist</h2>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {myWaitlist.map((w) => (
+                <div key={w._id} className="flex items-center justify-between p-4 border border-border rounded-xl bg-surface">
+                  <div>
+                    <p className="font-bold text-text-main m-0">{w.facultyId?.name || 'Faculty'}</p>
+                    <p className="text-xs text-text-muted m-0 flex items-center gap-1 mt-0.5">
+                      <CalendarDays size={12} /> {new Date(w.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} · {w.startTime}
+                    </p>
+                    {w.status === 'notified' && (
+                      <span className="badge badge-success mt-2 inline-block">slot opened!</span>
+                    )}
+                  </div>
+                  <button onClick={() => handleLeaveWaitlist(w._id)} className="btn-icon text-text-muted hover:text-danger" title="Leave waitlist">
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* My Appointments */}

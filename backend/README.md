@@ -76,6 +76,16 @@ All protected routes require an `Authorization: Bearer <token>` header.
 | PUT    | `/:id/reschedule`| student       | Move own appointment                 |
 | DELETE | `/:id`           | student       | Cancel own appointment               |
 
+### Waitlist — `/api/waitlist`
+| Method | Path      | Access  | Description                                   |
+| ------ | --------- | ------- | --------------------------------------------- |
+| POST   | `/`       | student | Join the waitlist for a taken slot            |
+| GET    | `/mine`   | student | Active waitlist entries                       |
+| DELETE | `/:id`    | student | Leave the waitlist                            |
+
+> When an appointment is cancelled, students waiting on that exact slot are
+> automatically notified (in-app + email) that it has opened up.
+
 ### Notifications — `/api/notifications`
 | Method | Path         | Access | Description                    |
 | ------ | ------------ | ------ | ------------------------------ |

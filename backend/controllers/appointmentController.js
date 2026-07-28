@@ -4,6 +4,7 @@ const asyncHandler = require('../utils/asyncHandler');
 const ApiError = require('../utils/ApiError');
 const { sendEmail } = require('../utils/mailer');
 const notify = require('../utils/notify');
+const { promoteWaitlist } = require('./waitlistController');
 const { validateTimeRange, toMinutes } = require('../utils/validators');
 
 // Start/end of the calendar day for a given date, used to match all
@@ -141,6 +142,11 @@ exports.updateAppointmentStatus = asyncHandler(async (req, res) => {
   appointment.status = status;
   await appointment.save();
 
+  // Freeing a slot? Let any waitlisted students know it opened up.
+  if (status === 'cancelled') {
+    promoteWaitlist(appointment.facultyId, appointment.date, appointment.startTime);
+  }
+
   if (appointment.studentId) {
     sendEmail(
       appointment.studentId.email,
@@ -172,6 +178,13 @@ exports.cancelAppointment = asyncHandler(async (req, res) => {
 
   appointment.status = 'cancelled';
   await appointment.save();
+
+  // Notify waitlisted students that this slot is free again.
+  promoteWaitlist(
+    appointment.facultyId._id || appointment.facultyId,
+    appointment.date,
+    appointment.startTime
+  );
 
   if (appointment.facultyId) {
     sendEmail(
