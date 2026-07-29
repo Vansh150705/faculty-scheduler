@@ -5,6 +5,7 @@ import api, { getErrorMessage } from '../api/client';
 import CalendarView from '../components/CalendarView';
 import RescheduleModal from '../components/RescheduleModal';
 import EmptyState from '../components/EmptyState';
+import Skeleton from '../components/Skeleton';
 import { exportCSV, exportICS } from '../utils/exportCalendar';
 import {
   Search, Calendar as CalendarIcon, Clock, User as UserIcon, CalendarDays,
@@ -16,6 +17,7 @@ const StudentBooking = () => {
   const toast = useToast();
 
   const [faculties, setFaculties] = useState([]);
+  const [loadingFaculty, setLoadingFaculty] = useState(true);
   const [facultySearch, setFacultySearch] = useState('');
   const [selectedFaculty, setSelectedFaculty] = useState(null);
   const [bookingDate, setBookingDate] = useState('');
@@ -41,11 +43,14 @@ const StudentBooking = () => {
   };
 
   const fetchFaculty = async () => {
+    setLoadingFaculty(true);
     try {
       const { data } = await api.get('/auth/faculty', { params: facultySearch ? { search: facultySearch } : {} });
       setFaculties(data);
     } catch (e) {
       toast.error(getErrorMessage(e));
+    } finally {
+      setLoadingFaculty(false);
     }
   };
 
@@ -168,7 +173,11 @@ const StudentBooking = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            {faculties.map((faculty, index) => (
+            {loadingFaculty &&
+              faculties.length === 0 &&
+              Array.from({ length: 4 }).map((_, i) => <Skeleton key={`s${i}`} className="h-[76px]" />)}
+            {!loadingFaculty &&
+              faculties.map((faculty, index) => (
               <div
                 key={faculty._id}
                 onClick={() => setSelectedFaculty(faculty)}
@@ -195,7 +204,7 @@ const StudentBooking = () => {
                 </div>
               </div>
             ))}
-            {faculties.length === 0 && (
+            {!loadingFaculty && faculties.length === 0 && (
               <div className="col-span-2 text-center py-10 border-2 border-dashed border-border rounded-xl bg-surface-hover">
                 <p className="text-text-muted text-sm font-medium m-0">No faculty found.</p>
               </div>
