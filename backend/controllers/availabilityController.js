@@ -15,6 +15,15 @@ exports.createAvailability = asyncHandler(async (req, res) => {
   if (!days.includes(dayOfWeek)) throw ApiError.badRequest('Invalid day of week');
   validateTimeRange(startTime, endTime);
 
+  // Reject a new window that overlaps an existing one on the same day.
+  const existing = await Availability.find({ facultyId: req.user.id, dayOfWeek });
+  const s = toMinutes(startTime);
+  const e = toMinutes(endTime);
+  const clash = existing.some((a) => s < toMinutes(a.endTime) && toMinutes(a.startTime) < e);
+  if (clash) {
+    throw ApiError.conflict(`That window overlaps an existing ${dayOfWeek} slot`);
+  }
+
   const availability = await Availability.create({
     facultyId: req.user.id,
     dayOfWeek,
