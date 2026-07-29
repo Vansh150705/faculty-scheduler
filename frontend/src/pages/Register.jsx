@@ -2,6 +2,7 @@ import React, { useState, useContext } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import useDocumentTitle from '../hooks/useDocumentTitle';
+import PasswordStrength from '../components/PasswordStrength';
 import { Mail, Lock, User as UserIcon, Tag, CalendarDays, ArrowRight, Eye, EyeOff } from 'lucide-react';
 
 const Register = () => {
@@ -104,6 +105,7 @@ const Register = () => {
                   {showPwd ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
+              <PasswordStrength password={password} />
             </div>
 
             <div className="animate-slide-up delay-400">
