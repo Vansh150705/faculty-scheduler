@@ -55,6 +55,17 @@ exports.getMyWaitlist = asyncHandler(async (req, res) => {
   res.json(entries);
 });
 
+// GET /api/waitlist/faculty — students currently waiting on this faculty's slots.
+exports.getFacultyWaitlist = asyncHandler(async (req, res) => {
+  const entries = await Waitlist.find({
+    facultyId: req.user.id,
+    status: { $in: ['waiting', 'notified'] },
+  })
+    .populate('studentId', 'name email')
+    .sort({ date: 1, startTime: 1 });
+  res.json(entries);
+});
+
 // DELETE /api/waitlist/:id — leave the waitlist.
 exports.leaveWaitlist = asyncHandler(async (req, res) => {
   const entry = await Waitlist.findById(req.params.id);

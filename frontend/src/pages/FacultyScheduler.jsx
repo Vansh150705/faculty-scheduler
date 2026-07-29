@@ -7,7 +7,7 @@ import EmptyState from '../components/EmptyState';
 import { exportCSV, exportICS } from '../utils/exportCalendar';
 import {
   Clock, Plus, Trash2, Calendar as CalendarIcon, CheckCircle, XCircle,
-  CheckCheck, List, LayoutGrid, Download, CalendarDays,
+  CheckCheck, List, LayoutGrid, Download, CalendarDays, Hourglass,
 } from 'lucide-react';
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -26,8 +26,18 @@ const FacultyScheduler = () => {
   const [loading, setLoading] = useState(false);
   const [filter, setFilter] = useState('all');
   const [view, setView] = useState('list');
+  const [waitlist, setWaitlist] = useState([]);
 
   const studentName = (a) => a.studentId?.name || 'Student';
+
+  const fetchWaitlist = async () => {
+    try {
+      const { data } = await api.get('/waitlist/faculty');
+      setWaitlist(data);
+    } catch {
+      /* non-critical */
+    }
+  };
 
   const fetchAvailabilities = async () => {
     try {
@@ -50,6 +60,7 @@ const FacultyScheduler = () => {
   useEffect(() => {
     fetchAvailabilities();
     fetchAppointments();
+    fetchWaitlist();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleAddAvailability = async (e) => {
@@ -154,6 +165,35 @@ const FacultyScheduler = () => {
             </div>
           )}
         </div>
+
+        {/* Waitlist for this faculty's slots */}
+        {waitlist.length > 0 && (
+          <div className="glass-card p-8">
+            <div className="flex items-center gap-3 mb-5">
+              <div className="flex items-center justify-center w-11 h-11 rounded-xl bg-warning/10 text-warning shadow-sm">
+                <Hourglass size={22} />
+              </div>
+              <h2 className="text-xl font-extrabold m-0 text-text-main">Waitlist</h2>
+              <span className="badge badge-warning ml-auto">{waitlist.length}</span>
+            </div>
+            <p className="text-xs text-text-muted mb-4 mt-0">
+              Students waiting for a slot to open up. They're notified automatically on a cancellation.
+            </p>
+            <div className="flex flex-col gap-2">
+              {waitlist.map((w) => (
+                <div key={w._id} className="flex items-center justify-between p-3 border border-border rounded-xl bg-surface">
+                  <div>
+                    <p className="font-semibold text-sm text-text-main m-0">{w.studentId?.name || 'Student'}</p>
+                    <p className="text-xs text-text-muted m-0">
+                      {new Date(w.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} · {w.startTime}
+                    </p>
+                  </div>
+                  {w.status === 'notified' && <span className="badge badge-success">notified</span>}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Appointment Requests */}
