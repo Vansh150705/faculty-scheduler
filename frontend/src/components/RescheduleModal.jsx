@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X, CalendarDays } from 'lucide-react';
 import api, { getErrorMessage } from '../api/client';
 import { useToast } from '../context/ToastContext';
@@ -11,6 +11,17 @@ const RescheduleModal = ({ appointment, onClose, onDone }) => {
   const [startTime, setStartTime] = useState(appointment.startTime);
   const [endTime, setEndTime] = useState(appointment.endTime);
   const [saving, setSaving] = useState(false);
+  const dateRef = useRef(null);
+
+  // Autofocus the first field and close on Escape.
+  useEffect(() => {
+    dateRef.current?.focus();
+    const onKey = (e) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose]);
 
   const submit = async (e) => {
     e.preventDefault();
@@ -43,7 +54,7 @@ const RescheduleModal = ({ appointment, onClose, onDone }) => {
           <div>
             <label className="label">New Date</label>
             <div className="relative">
-              <input type="date" required className="input-field pl-11" value={date} min={new Date().toISOString().split('T')[0]} onChange={(e) => setDate(e.target.value)} />
+              <input ref={dateRef} type="date" required className="input-field pl-11" value={date} min={new Date().toISOString().split('T')[0]} onChange={(e) => setDate(e.target.value)} />
               <CalendarDays size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
             </div>
           </div>
