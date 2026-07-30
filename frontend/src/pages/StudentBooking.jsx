@@ -30,8 +30,18 @@ const StudentBooking = () => {
   const [rescheduleTarget, setRescheduleTarget] = useState(null);
   const [myWaitlist, setMyWaitlist] = useState([]);
   const [waitlisting, setWaitlisting] = useState(null); // startTime being waitlisted
+  const [bookingFilter, setBookingFilter] = useState('upcoming');
 
   const facultyName = (a) => a.facultyId?.name || 'Faculty';
+
+  // Split bookings into upcoming vs past relative to the start of today.
+  const startOfDay = new Date();
+  startOfDay.setHours(0, 0, 0, 0);
+  const visibleBookings = myAppointments.filter((a) => {
+    if (bookingFilter === 'all') return true;
+    const isPast = new Date(a.date) < startOfDay;
+    return bookingFilter === 'past' ? isPast : !isPast;
+  });
 
   const fetchWaitlist = async () => {
     try {
@@ -340,11 +350,25 @@ const StudentBooking = () => {
             </div>
           </div>
 
+          {view === 'list' && myAppointments.length > 0 && (
+            <div className="flex gap-1 mb-5 p-1 bg-surface-hover rounded-full">
+              {['upcoming', 'past', 'all'].map((f) => (
+                <button
+                  key={f}
+                  onClick={() => setBookingFilter(f)}
+                  className={`flex-1 px-3 py-1.5 rounded-full text-xs font-bold capitalize transition-all ${bookingFilter === f ? 'bg-surface-solid text-primary shadow-sm' : 'text-text-muted hover:text-primary'}`}
+                >
+                  {f}
+                </button>
+              ))}
+            </div>
+          )}
+
           {view === 'calendar' ? (
             <CalendarView appointments={myAppointments} counterpart={facultyName} />
           ) : (
             <div className="flex flex-col gap-4">
-              {myAppointments.map((appt, index) => (
+              {visibleBookings.map((appt, index) => (
                 <div key={appt._id} className="p-5 border border-border rounded-2xl bg-surface relative overflow-hidden hover:shadow-md transition-all duration-300 animate-slide-up" style={{ animationDelay: `${index * 80}ms` }}>
                   <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${appt.status === 'pending' ? 'bg-warning' : appt.status === 'confirmed' ? 'bg-secondary' : appt.status === 'completed' ? 'bg-primary' : 'bg-danger'}`}></div>
                   <div className="flex justify-between items-start mb-3 pl-2">
@@ -369,6 +393,9 @@ const StudentBooking = () => {
 
               {myAppointments.length === 0 && (
                 <EmptyState icon={CalendarDays} title="No bookings yet" message="Pick a faculty member to get started." />
+              )}
+              {myAppointments.length > 0 && visibleBookings.length === 0 && (
+                <EmptyState icon={CalendarDays} title={`No ${bookingFilter} bookings`} message="Try a different filter." />
               )}
             </div>
           )}
